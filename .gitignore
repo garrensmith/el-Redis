@@ -1,0 +1,4 @@
+*.beam
+*.log
+*.pid
+.eunit
