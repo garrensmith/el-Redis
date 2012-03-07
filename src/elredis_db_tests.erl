@@ -14,7 +14,7 @@ teardown(_Info) ->
   elredis_db:stop().
 
 should_add_item(_Info) ->
-  Response = elredis_db:add(hello),
+  Response = elredis_db:add(hello,world),
   [?_assertEqual(Response, ok)].
 
 
