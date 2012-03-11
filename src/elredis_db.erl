@@ -21,9 +21,11 @@ stop() ->
   gen_server:call(?MODULE, stop).
 
 start_link() ->
+  io:format("start link db ~n"),
   gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 init([]) ->
+  io:format("started db ~n"),
   ets:new(elredis_set, [set, named_table, protected]),
   {ok, #state{}}.
 

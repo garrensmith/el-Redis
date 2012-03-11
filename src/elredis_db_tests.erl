@@ -37,6 +37,8 @@ should_increment_by_2(_Info) ->
   [?_assertEqual(102, IncreasedValue),
    ?_assertEqual(102, CounterValue)].
 
+%ERR value is not an integer or out of range
+% If the key does not exist, it is set to 0 before performing the operation
 should_check_if_key_exists(_Info) ->
   IncreasedValue = elredis_db:incrby(counter, 2),
   [?_assertEqual(102, IncreasedValue)].
