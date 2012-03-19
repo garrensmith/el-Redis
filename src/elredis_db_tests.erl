@@ -12,8 +12,8 @@ increment_value_test_() ->
   {foreach,
     fun setup/0,
     fun teardown/1,
-    [fun should_increment_by_2/1,
-     fun should_check_if_key_exists/1]}.
+    [fun should_increment_by_2/1]}.
+%     fun should_check_if_key_exists/1]}.
 
 setup() ->
   elredis_db:start_link().
@@ -39,9 +39,9 @@ should_increment_by_2(_Info) ->
 
 %ERR value is not an integer or out of range
 % If the key does not exist, it is set to 0 before performing the operation
-should_check_if_key_exists(_Info) ->
-  IncreasedValue = elredis_db:incrby(counter, 2),
-  [?_assertEqual(102, IncreasedValue)].
+%should_check_if_key_exists(_Info) ->
+%  IncreasedValue = elredis_db:incrby(counter, 2),
+%  [?_assertEqual(102, IncreasedValue)].
 
 
 

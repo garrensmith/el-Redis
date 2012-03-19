@@ -9,11 +9,9 @@
 %% Application callbacks
 %% ===================================================================
 start() ->
-    io:format("boom started ~n"),
     application:start(elredis).
 
 start(_StartType, _StartArgs) ->
-  io:format("boom started with args ~n"),
     elredis_sup:start_link().
 
 stop(_State) ->
