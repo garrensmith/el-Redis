@@ -1,9 +1,0 @@
-{application,elredis,
-             [{description,[]},
-              {vsn,"1"},
-              {registered,[]},
-              {applications,[kernel,stdlib]},
-              {mod,{elredis_app,[]}},
-              {env,[]},
-              {modules,[elredis_app,elredis_db,elredis_db_tests,
-                        elredis_listener,elredis_sup]}]}.

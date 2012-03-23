@@ -12,10 +12,12 @@ start() ->
     application:start(elredis).
 
 start(_StartType, _StartArgs) ->
-    elredis_sup:start_link().
+    elredis_sup:start_link(),
+    elredis_listener:start({},{}).
 
 stop(_State) ->
   io:format("stopped app ~n"),
-    ok.
+  elredis_listener:stop({}),
+  ok.
 
   % application:which_applications().

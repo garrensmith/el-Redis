@@ -8,7 +8,7 @@ eunit:
 
 run:
 	rebar compile
-	erl -pa ./ebin -boot start_sasl -s elredis_app
+	erl -pa ./ebin -pa deps/*/ebin -s elredis_app
 
 
 .phony: run, eunit, test
