@@ -19,13 +19,24 @@ split_commands(Buffer) ->
   split_commands(Buffer,[]).
 
 split_commands(Buffer, Commands) ->
-  io:format("split ~p ~n",[binary:split(Buffer,<<"\r\n">>)]),
   case binary:split(Buffer,<<"\r\n">>) of
     [<<"$",_CommandLengthBin/binary>>, Buffer2] -> split_commands(Buffer2, Commands);
-    [NewCommand, Buffer2] -> split_commands(Buffer2, [string:to_upper(binary_to_list(NewCommand)) | Commands]);
-    [_EmptyBuffer] -> lists:reverse(Commands)
+    [NewCommand, Buffer2] -> split_commands(Buffer2, [binary_to_list(NewCommand) | Commands]);
+    [_EmptyBuffer] -> reverse_list_and_uppercase_command(Commands)     
   end.    
 
+reverse_list_and_uppercase_command(Commands) ->
+   [Head | Tail] = lists:reverse(Commands),
+   [string:to_upper(Head) | Tail].
+
+create_reply_for(bulk,RawResponse) ->
+  create_reply_for(bulk, RawResponse, []).
+
+create_reply_for(bulk, [], Response) ->
+  list_to_binary(lists:reverse(Response));
+create_reply_for(bulk, [Head | Tail], Response) ->
+  Msg = lists:concat(["$",length(Head),"\r\n",Head,"\r\n"]), 
+  create_reply_for(bulk, Tail, [Msg | Response]).
 
 process_bulk_message(1, ["PING"]) ->
   <<"+PONG\r\n">>;
@@ -37,13 +48,9 @@ process_bulk_message(3,["SET",Key, Value]) ->
     _ -> <<"-error occured">>
   end;
 process_bulk_message(2,["GET",Key]) ->
-  %[{Key, Value}] = elredis_db:lookup(Key),
-  <<"$5\r\nhello\r\n">>;%Value;
+  Value = elredis_db:lookup(Key),
+  create_reply_for(bulk, [Value]);
 process_bulk_message(_, _) ->
   <<"-ERR Unknown or disabled command\r\n">>.
 
-%%
-%%%X = "*3\r\n$3\r\nSET\r\n$5\r\nmykey\r\n$7\r\nmyvalue\r\n",
-%%  X="+PONG\r\n",
-%X = <<"*1\r\n$19\r\nredis_version:2.2.2\r\n">>,
 

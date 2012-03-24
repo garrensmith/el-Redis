@@ -34,8 +34,16 @@ handle_call({set, {Key, Value}}, _From, State) ->
   {reply, ok, State};
 
 handle_call({lookup, Key}, _From, State) ->
-  Result = ets:lookup(elredis_set,Key),
-  {reply, Result, State};
+  %Result = ets:lookup(elredis_set,Key),
+  case ets:lookup(elredis_set,Key) of
+    [] -> {reply, nil, State};
+    [{_,Value}] ->  
+      io:format("Value ~p ~n",[Value]),
+      {reply, Value, State};
+    Result -> 
+      io:format("Result ~p ~n",[Result]),
+      {reply, Result, State} 
+  end; 
 
 handle_call({incrby, Key, Amount}, _From, State)  ->
   Value = ets:lookup_element(elredis_set,Key,2),

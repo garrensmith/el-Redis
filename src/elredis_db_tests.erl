@@ -6,7 +6,8 @@ store_retrieve_set_data_test_() ->
     fun setup/0,
     fun teardown/1,
     [fun should_add_item/1,
-     fun should_retrieve_item_with_key/1 ]}.
+     fun should_retrieve_item_with_key/1,
+     fun should_return_nil_if_key_not_present/1 ]}.
 
 increment_value_test_() ->
   {foreach,
@@ -26,14 +27,18 @@ should_add_item(_Info) ->
   [?_assertEqual(ok, Response)].
 
 should_retrieve_item_with_key(_Info) ->
-  elredis_db:set(coffee,yum),
+  elredis_db:set(coffee,"yum"),
   LookUpValue = elredis_db:lookup(coffee), 
-  [?_assertEqual([{coffee,yum}], LookUpValue)].
+  [?_assertEqual("yum", LookUpValue)].
+
+should_return_nil_if_key_not_present(_Info) ->
+  LookUpValue = elredis_db:lookup(not_existing_key), 
+  [?_assertEqual(nil, LookUpValue)].
 
 should_increment_by_2(_Info) ->
   elredis_db:set(counter, "100"),
   IncreasedValue = elredis_db:incrby(counter, 2),
-  [{counter, CounterValue}|_] = elredis_db:lookup(counter),
+  CounterValue = elredis_db:lookup(counter),
   [?_assertEqual(102, IncreasedValue),
    ?_assertEqual(102, CounterValue)].
 
