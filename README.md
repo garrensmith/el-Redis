@@ -1,6 +1,6 @@
 # el-Redis
 
-Redis Clone implemented in Redis.
+Redis Clone implemented in erlang.
 
 ## Run
 `make run`
