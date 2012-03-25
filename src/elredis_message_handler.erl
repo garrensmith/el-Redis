@@ -6,8 +6,10 @@
 % bulk $
 % multi bulk *
 
+-define(NL, "\r\n").
+
 process_message(Message) ->
-  case binary:split(Message,<<"\r\n">>) of
+  case binary:split(Message,<<?NL>>) of
     [<<"*",LengthBin/binary>>, Rest] -> 
       Length = list_to_integer(binary_to_list(LengthBin)), 
       Commands = split_commands(Rest),
@@ -19,7 +21,7 @@ split_commands(Buffer) ->
   split_commands(Buffer,[]).
 
 split_commands(Buffer, Commands) ->
-  case binary:split(Buffer,<<"\r\n">>) of
+  case binary:split(Buffer,<<?NL>>) of
     [<<"$",_CommandLengthBin/binary>>, Buffer2] -> split_commands(Buffer2, Commands);
     [NewCommand, Buffer2] -> split_commands(Buffer2, [binary_to_list(NewCommand) | Commands]);
     [_EmptyBuffer] -> reverse_list_and_uppercase_command(Commands)     
@@ -35,7 +37,7 @@ create_reply_for(bulk,RawResponse) ->
 create_reply_for(bulk, [], Response) ->
   list_to_binary(lists:reverse(Response));
 create_reply_for(bulk, [Head | Tail], Response) ->
-  Msg = lists:concat(["$",length(Head),"\r\n",Head,"\r\n"]), 
+  Msg = lists:concat(["$",length(Head),?NL,Head,?NL]), 
   create_reply_for(bulk, Tail, [Msg | Response]).
 
 process_bulk_message(1, ["PING"]) ->
