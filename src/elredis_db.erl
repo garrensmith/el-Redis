@@ -63,7 +63,8 @@ handle_cast(_Msg, State) ->
 handle_info(_Info, State) ->
   {noreply, State}.
 
-terminate(_Reason, _State) ->
+terminate(Reason, _State) ->
+  io:format("terminating ~p ~n",[Reason]),
   ok.
 
 code_change(_OldVsn, State, _Extra) ->

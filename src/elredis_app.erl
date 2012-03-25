@@ -9,15 +9,16 @@
 %% Application callbacks
 %% ===================================================================
 start() ->
-    application:start(elredis).
+  application:start(elredis).
 
 start(_StartType, _StartArgs) ->
-    elredis_sup:start_link(),
-    elredis_listener:start({},{}).
+  SupPid = elredis_sup:start_link(),
+  elredis_listener:start({},{}),
+  io:format("el-Redis is running on port 6379 ~n"),
+  SupPid.
 
 stop(_State) ->
-  io:format("stopped app ~n"),
-  elredis_listener:stop({}),
+  %elredis_listener:stop({}),
   ok.
 
-  % application:which_applications().
+% application:which_applications().

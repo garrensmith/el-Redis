@@ -24,7 +24,6 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    io:format("started sup ~n"),
     DBGenServer = ?CHILD(elredis_db, worker),
     {ok, { {one_for_one, 5, 10}, [DBGenServer]} }.
 

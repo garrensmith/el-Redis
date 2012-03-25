@@ -9,7 +9,6 @@
 -export([init/4]).
 
 start(_StartType, _StartArgs) ->
-  io:format("starting ~n"),
   ok = application:start(cowboy),
   {ok, _} = cowboy:start_listener(
     ?MODULE, 100,
@@ -18,7 +17,6 @@ start(_StartType, _StartArgs) ->
 
 %% @private Spawn a process to handle a new connection.
 start_link(ListenerPid, Socket, Transport, Options) ->
-  io:format("start link called ~n"),
   Pid = spawn_link(?MODULE, init, [ListenerPid, Socket, Transport, Options]),
   {ok, Pid}.
 
@@ -40,5 +38,6 @@ command_loop(Socket, Transport) ->
 
 stop(_State) ->
   io:format("stopping tcp ~n"),
-  application:stop(cowboy).
+  application:stop(cowboy),
+  ok.
 
