@@ -18,7 +18,7 @@ should_save_command_to_disk(_Info) ->
   Response = elredis_aof:write_command(<<"*3\r\n$3\r\nset\r\n$5\r\nmykey\r\n$5\r\nhello\r\n">>),
   [?_assertEqual(ok, Response)]. 
 
-should_read_commands(_Info) ->
-  elredis_aof:write_command("boom"),
-  Commands = elredis_aof:read_commands(),
-  [?_assertEqual(
+%should_read_commands(_Info) ->
+%  elredis_aof:write_command("boom"),
+%  Commands = elredis_aof:read_commands(),
+%  [?_assertEqual(
