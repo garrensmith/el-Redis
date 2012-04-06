@@ -14,6 +14,7 @@ start() ->
 start(_StartType, _StartArgs) ->
   SupPid = elredis_sup:start_link(),
   elredis_listener:start({},{}),
+  elredis_aof_handler:add_handler(),
   io:format("el-Redis is running on port 6379 ~n"),
   SupPid.
 

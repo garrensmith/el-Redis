@@ -28,9 +28,12 @@ command_loop(Socket, Transport) ->
   case Transport:recv(Socket, 0,infinity) of
     {ok, Data} ->
       io:format("RECEIVED ~p ~n",[Data]),
-      Response = elredis_message_handler:process_message(Data),
-      io:format("Replied ~p ~n",[Response]),
-      Transport:send(Socket, Response),
+      case elredis_message_handler:process_message(Data) of
+        {send, Response} ->
+          io:format("Replied ~p ~n",[Response]),
+          Transport:send(Socket, Response)
+      end,
+        
       command_loop(Socket, Transport);
     {error, closed} ->
       ok

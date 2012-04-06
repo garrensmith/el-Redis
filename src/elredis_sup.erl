@@ -25,5 +25,6 @@ start_link() ->
 
 init([]) ->
     DBGenServer = ?CHILD(elredis_db, worker),
-    {ok, { {one_for_one, 5, 10}, [DBGenServer]} }.
+    EventServer = ?CHILD(elredis_event, worker), 
+    {ok, { {one_for_one, 5, 10}, [DBGenServer, EventServer]} }.
 

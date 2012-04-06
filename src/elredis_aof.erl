@@ -4,6 +4,6 @@
 -export([write_command/1]).
 
 
-write_command(Command) ->
-  file:write_file("appendonly.aof", Command, [append]).
+write_command(Commands) ->
+  file:write_file("appendonly.aof", Commands, [append]).
   
