@@ -1,39 +1,54 @@
 -module(elredis_message_handler).
 
 -export([process_message/1]).
-%replies
-% status: +
-% bulk $
-% multi bulk *
+% Messages
+%   status +
+%   bulk $
+%   multi bulk *
 
 -define(NL, "\r\n").
+-include_lib("eunit/include/eunit.hrl").
 
+process_message({continue, Length, IncompleteArguments, CombinedRawCommand}) ->
+  message_response_handler(Length, CombinedRawCommand, IncompleteArguments);
 process_message(RawCommand) ->
   case binary:split(RawCommand,<<?NL>>) of
+    %find start of message
     [<<$*,LengthBin/binary>>, Buffer] -> 
       Length = list_to_integer(binary_to_list(LengthBin)), 
-      %Commands = split_commands(Rest),
-      case do_process_bulk_message(Length, Buffer) of
-        {ok, Arguments, _Overflow} -> 
-          io:format("response ~p ~n",[Arguments]),
-          process_bulk_message(Length, Arguments)
-      end;
+      message_response_handler(Length, Buffer);
     _ -> process_bulk_message(1,error)
   end.
 
-do_process_bulk_message(Length, Buffer) ->
-  do_process_bulk_message(Length, Buffer, []).
+message_response_handler(Length, RawCommand) ->
+  message_response_handler(Length, RawCommand, []).
+
+message_response_handler(Length, RawCommand, Arguments) ->
+  case do_process_bulk_message(Length, RawCommand, Arguments) of
+    {ok, CompletedArgumented, _Overflow} -> 
+          io:format("response ~p ~n",[CompletedArgumented]),
+          process_bulk_message(length(CompletedArgumented), CompletedArgumented);
+    {await, RemainLength, Args, Rest} ->
+          {await, RemainLength, Args, Rest};
+     Weird -> 
+      ?debugMsg("unkown"),
+      ?debugVal(Weird),
+      process_bulk_message(1,error)
+   end.
 
 do_process_bulk_message(0, Rest, Arguments) ->
   {ok,reverse_list_and_uppercase_command(Arguments), Rest};
 do_process_bulk_message(Length, Buffer, Arguments) ->
-  {ok, Value, Rest} = process_bulk_message2(Length,Buffer),
-  do_process_bulk_message(Length - 1, Rest, [Value | Arguments]).
+  case process_bulk_message2(Length,Buffer) of
+    {ok, Value, Rest} -> do_process_bulk_message(Length - 1, Rest, [Value | Arguments]);
+    {await} ->
+      {await,Length, Arguments, Buffer}
+  end.
 
 process_bulk_message2(_NoOfArguments, Buffer) ->
   case argument_length(Buffer) of
     Length ->
-
+      %move this into its own function
       if Length =:= -1 -> error; 
       
       size(Buffer) - (size(<<?NL>>) * 2) >= Length ->
@@ -42,21 +57,17 @@ process_bulk_message2(_NoOfArguments, Buffer) ->
         <<_ArgumentDesc:ArgPositions/binary,?NL, Value:Length/binary, ?NL, Rest/binary>>  = Buffer,
         {ok, binary_to_list(Value), Rest};
       
-      true -> error %incomplete
+      true ->  %incomplete
+          io:format("Awaiting"),
+          {await}
     end
   end.
 
 argument_length(Buffer) ->
   case binary:split(Buffer, <<?NL>>) of
-    [<<$$, LengthBin/binary>>, Rest] -> list_to_integer(binary_to_list(LengthBin));
+    [<<$$, LengthBin/binary>>, _Rest] -> list_to_integer(binary_to_list(LengthBin));
     _ -> error
    end.
-
-
-        
-
-
-
 
 %await_length(Buffer) ->                                                 
 %    case binary:split(Buffer, <<"\r\n">>) of                                    
@@ -76,15 +87,15 @@ argument_length(Buffer) ->
 %            %await_length(<<Buffer/binary, Packet/binary>>)              
 %    end.
 
-split_commands(Buffer) ->
-  split_commands(Buffer,[]).
-
-split_commands(Buffer, Commands) ->
-  case binary:split(Buffer,<<?NL>>) of
-    [<<"$",_CommandLengthBin/binary>>, Buffer2] -> split_commands(Buffer2, Commands);
-    [NewCommand, Buffer2] -> split_commands(Buffer2, [binary_to_list(NewCommand) | Commands]);
-    [_EmptyBuffer] -> reverse_list_and_uppercase_command(Commands)
-  end.
+%split_commands(Buffer) ->
+%  split_commands(Buffer,[]).
+%
+%split_commands(Buffer, Commands) ->
+%  case binary:split(Buffer,<<?NL>>) of
+%    [<<"$",_CommandLengthBin/binary>>, Buffer2] -> split_commands(Buffer2, Commands);
+%    [NewCommand, Buffer2] -> split_commands(Buffer2, [binary_to_list(NewCommand) | Commands]);
+%    [_EmptyBuffer] -> reverse_list_and_uppercase_command(Commands)
+%  end.
 
 reverse_list_and_uppercase_command(Commands) ->
    [Head | Tail] = lists:reverse(Commands),

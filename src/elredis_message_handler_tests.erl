@@ -4,20 +4,21 @@
 setup() ->
   %elredis_aof_handler:add_handler(),
   elredis_db:start_link().
-  
+
 teardown(_Info) ->
   %elredis_aof_handler:delete_handler(),
   elredis_db:stop().
 
 store_retrieve_set_data_test_() ->
   {foreach,
-    fun setup/0,
-    fun teardown/1,
+   fun setup/0,
+   fun teardown/1,
    [fun should_reply_to_ping_message/1,
     fun should_reply_to_lower_case_ping_message/1,
     fun should_handle_message_that_are_larger/1,
     fun should_set_key_and_respond_with_ok/1,
-    %fun should_process_message_broken_up/1,
+    fun should_return_wait_response/1,
+      fun should_complete_broken_response/1,
     fun should_get_set_key_value/1]}.
 
 should_reply_to_ping_message(_Info) ->
@@ -44,11 +45,18 @@ should_handle_message_that_are_larger(_Info) ->
   [?_assertEqual({send, <<"+OK\r\n">>}, Response1),
    ?_assertEqual({send, <<"+OK\r\n">>}, Response2)].
 
-%should_process_message_broken_up(_Info) ->
-%  MessagePart1 = <<"*3\r\n$3\r\nset\r\n$5\r\n">>,
-%  MessagePart2 = <<"mykey\r\n$5\r\nhello\r\n">>,
-%  AwaitResponse =  elredis_message_handler:process_message(MessagePart1),
-%  {send, Response} = elredis_message_handler:process_message(MessagePart2),
-%  [?_assertEqual(await, AwaitResponse), ?_assertEqual(<<"$5\r\nhello\r\n">>, Response)].
+should_return_wait_response(_Info) ->
+  MessagePart1 = <<"*3\r\n$3\r\nset\r\n$5\r\n">>,
+  {AwaitResponse, Length, Arguments, Overflow} =  elredis_message_handler:process_message(MessagePart1),
+  [?_assertEqual(await , AwaitResponse), ?_assertEqual(["set"], Arguments), 
+   ?_assertEqual(<<"$5\r\n">>, Overflow), ?_assertEqual(2, Length)].
+
+should_complete_broken_response(_Info) -> 
+  %MessagePart1 = <<"*3\r\n$3\r\nset\r\n$5\r\n">>,
+  %MessagePart2 = <<"mykey\r\n$5\r\nhello\r\n">>,
+  %{await, Length, Arguments, Overflow} =  elredis_message_handler:process_message(MessagePart1),
+  Mes2 = {continue,2,["set"],<<"$5\r\nmykey\r\n$5\r\nhello\r\n">>},
+  {SendResponseCommand, Response} = elredis_message_handler:process_message(Mes2),
+  [?_assertEqual(send, SendResponseCommand), ?_assertEqual(<<"+OK\r\n">>, Response)].
 
 
