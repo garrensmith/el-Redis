@@ -11,6 +11,8 @@
 
 process_message({continue, Length, IncompleteArguments, CombinedRawCommand}) ->
   message_response_handler(Length, CombinedRawCommand, IncompleteArguments);
+process_message({new, RawCommand}) ->
+  process_message(RawCommand);
 process_message(RawCommand) ->
   case binary:split(RawCommand,<<?NL>>) of
     %find start of message
@@ -30,9 +32,7 @@ message_response_handler(Length, RawCommand, Arguments) ->
           process_bulk_message(length(CompletedArgumented), CompletedArgumented);
     {await, RemainLength, Args, Rest} ->
           {await, RemainLength, Args, Rest};
-     Weird -> 
-      ?debugMsg("unkown"),
-      ?debugVal(Weird),
+     _Weird -> 
       process_bulk_message(1,error)
    end.
 

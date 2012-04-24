@@ -18,7 +18,7 @@ store_retrieve_set_data_test_() ->
     fun should_handle_message_that_are_larger/1,
     fun should_set_key_and_respond_with_ok/1,
     fun should_return_wait_response/1,
-      fun should_complete_broken_response/1,
+    fun should_complete_broken_response/1,
     fun should_get_set_key_value/1]}.
 
 should_reply_to_ping_message(_Info) ->

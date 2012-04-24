@@ -15,3 +15,8 @@ Redis Clone implemented in erlang. Still very early days in the development of t
 * ping
 * set
 * get 
+
+## TODO
+
+* Clean up message processing code, its generally a mess at the moment
+* Add AOF saving
